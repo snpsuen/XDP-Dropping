@@ -9,38 +9,36 @@ struct {
     __uint(max_entries, 1024);
     __type(key, uint32_t);
     __type(value, uint8_t);
-} blocked SEC(".maps");
+} dropping_hash SEC(".maps");
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
     __uint(max_entries, 256 * 1024);
-} ringbuf SEC(".maps");
+} pingarrive_ring SEC(".maps");
 
 SEC("xdp")
-int detect_ping(struct xdp_md *ctx) {
+int processping(struct xdp_md *ctx) {
     void *data_end = (void *)(long)ctx->data_end;
     void *data = (void *)(long)ctx->data;
-    struct data_t msg = {0};
+    struct ringmsg_t msg = {0};
     int ret = XDP_PASS;
 
     struct ethhdr *eth = (struct ethhdr *)data;
-    struct iphdr *ip = (struct iphdr *)((char *)data + sizeof(*eth));
-    struct icmphdr *icmp = (struct icmphdr *)(ip + 1);
-
+    if ((void*)eth + sizeof(struct ethhdr) > data_end)
+        return XDP_ABORTED;
     
-    if (data + sizeof(*eth) + sizeof(*ip) + sizeof(*icmp) > data_end) {
-        return  XDP_PASS;
-
-    }
-
-    
-    if (eth->h_proto != htons(ETH_P_IP)) {
+     if (ntohs(eth->h_proto) != ETH_P_IP)
         return XDP_PASS;
-    }
 
+    struct iphdr* iph = (void*)eth + sizeof(struct ethhdr);
+    if ((void*)iph + sizeof(struct iphdr) > data_end)
+        return XDP_ABORTED;
 
-    if (ip->protocol == 1) {
-        msg.proto = 1;
+    if (iph->protocol != IPPROTO_ICMP)
+        return XDP_PASS;
+    
+    if (ip->protocol == IPPROTO_ICMP) {
+        msg.proto = IPPROTO_ICMP;
         msg.saddr = ip->saddr;
         msg.daddr = ip->daddr;
 
