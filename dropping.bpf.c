@@ -20,14 +20,12 @@ SEC("xdp")
 int processping(struct xdp_md *ctx) {
     void *data_end = (void *)(long)ctx->data_end;
     void *data = (void *)(long)ctx->data;
-    struct ringmsg_t msg = {0};
-    int ret = XDP_PASS;
+    struct pingarrive_t msg = {0};
 
     struct ethhdr *eth = (struct ethhdr *)data;
     if ((void*)eth + sizeof(struct ethhdr) > data_end)
         return XDP_ABORTED;
-    
-     if (ntohs(eth->h_proto) != ETH_P_IP)
+    if (ntohs(eth->h_proto) != ETH_P_IP)
         return XDP_PASS;
 
     struct iphdr* iph = (void*)eth + sizeof(struct ethhdr);
@@ -42,15 +40,14 @@ int processping(struct xdp_md *ctx) {
         msg.saddr = ip->saddr;
         msg.daddr = ip->daddr;
 
-        bpf_ringbuf_output(&ringbuf, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
+        bpf_ringbuf_output(&pingarrive_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
 
-        if (bpf_map_lookup_elem(&ping_hash, &ip->daddr) || bpf_map_lookup_elem(&ping_hash, &ip->saddr)) {
+        if (bpf_map_lookup_elem(&ping_hash, &ip->saddr)) {
             return XDP_DROP;
         } 
-
     }
-
-    return ret;
+    
+    return XDP_PASS;
 }
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
