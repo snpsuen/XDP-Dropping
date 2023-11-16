@@ -1,13 +1,8 @@
-#include <stdint.h>
-#include <linux/bpf.h>
-#include <linux/if_ether.h>
-#include <linux/ip.h>
-#include <linux/icmp.h>
+// SPDX-License-Identifier: (LGPL-2.1-or-later OR BSD-2-Clause)
+
+#include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
-#include <arpa/inet.h>
-
-#include "main.h"
-
+#include "dropping.h"
 
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
