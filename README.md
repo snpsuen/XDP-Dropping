@@ -1,2 +1,2 @@
 ## XDP-Dropping
-Adapted from the sample code coourtesy of Naftaly Avadiaev, https://naftalyava.com/example-xdp-ebpf-code-for-handling-ingress-traffic/
+The repository is adapted from the example courtesy of Naftaly Avadiaev, https://naftalyava.com/example-xdp-ebpf-code-for-handling-ingress-traffic/.
