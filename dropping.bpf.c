@@ -8,8 +8,8 @@ struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, 1024);
     __type(key, uint32_t);
-    __type(value, uint32_t);
-} ping_hash SEC(".maps");
+    __type(value, uint8_t);
+} blocked SEC(".maps");
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
