@@ -42,7 +42,7 @@ int processping(struct xdp_md *ctx) {
 
         bpf_ringbuf_output(&pingarrive_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
 
-        if (bpf_map_lookup_elem(&ping_hash, &ip->saddr)) {
+        if (bpf_map_lookup_elem(&dropping_hash, &ip->saddr)) {
             return XDP_DROP;
         } 
     }
