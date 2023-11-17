@@ -82,50 +82,43 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    struct bpf_map *ringbuf_map = bpf_object__find_map_by_name(dpbpf->obj, "ping_ring");
-    if (!ringbuf_map)
+    int map_fd = bpf_object__find_map_id_by_name(dpbpf->obj, "ping_ring");
+    if (map_fd < 0)
     {
-        fprintf(stderr, "Failed to get ring buffer map\n");
-        return 1;
+        fprintf(stderr, "Failed to find the fd for the ring buffer map\n");
+        return EXIT_FAILURE;
     }
 
-    struct ring_buffer *ringbuf = ring_buffer__new(bpf_map__fd(ringbuf_map), handle_ping, NULL, NULL);
+    struct ring_buffer *ringbuf = ring_buffer__new(map_fd, handle_ping, NULL, NULL);
     if (!ringbuf)
     {
         fprintf(stderr, "Failed to create ring buffer\n");
-        return 1;
+        return EXIT_FAILURE;
     }
-
-
 
     printf("Successfully started! Please Ctrl+C to stop.\n");
 
-
-    struct bpf_map *map_hash = bpf_object__find_map_by_name(skel->obj, "ping_hash");
-    if (!map_hash) {
-        fprintf(stderr, "!map_hash\n");
-        return 1;
+    struct bpf_map *phmap = bpf_object__find_map_by_name(dpbpf->obj, "ping_hash");
+    if (!phmap) {
+        fprintf(stderr, "Failed to find the ping hash map\n");
+        return EXIT_FAILURE;
     }
 
-    const char* ip_host_str = "192.168.1.10";
-    uint32_t ip_host;
-    inet_pton(AF_INET, ip_host_str, &ip_host);
 
-    const char* ip_server_str = "8.8.8.8";
-    uint32_t ip_server;
-    inet_pton(AF_INET, ip_server_str, &ip_server);
+    const char* sourceip = "192.168.1.1";
+    uint32_t key;
+    inet_pton(AF_INET, sourceip, &key);
+    uint8_t value = 1;
 
-    err = bpf_map__update_elem(map_hash, &ip_server, sizeof(uint32_t), &ip_server, sizeof(uint32_t), BPF_ANY);
-    if (err) {
+    int ret = bpf_map__update_elem(map_hash, &key, sizeof(uint32_t), &value, sizeof(uint8_t), BPF_ANY);
+    if (ret < 0) {
         fprintf(stderr, "failed to update element in ping_hash\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     // Poll the ring buffer
-    while (1)
-    {
-        if (ring_buffer__poll(ringbuf, 1000 /* timeout, ms */) < 0)
-        {
+    while (1) {
+        if (ring_buffer__poll(ringbuf, interval /* timeout, ms */) < 0) {
             fprintf(stderr, "Error polling ring buffer\n");
             break;
         }
