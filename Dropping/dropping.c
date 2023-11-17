@@ -67,25 +67,22 @@ int main(int argc, char *argv[]) {
         perror("failed to increase RLIMIT_MEMLOCK");
         return EXIT_FAILURE;
     }
-
-    int err;
-    struct dropping_bpf *obj;
     
     // Load and verify BPF application
-    struct dropping_bpf *obj = dropping_bpf__open_and_load();
+    struct dropping_bpf *dpbpf = dropping_bpf__open_and_load();
     if (!obj) {
         fprintf(stderr, "Failed to open and open BPF object\n");
         return 1;
     }
 
     // Attach xdp program to interface
-    struct bpf_link *link = bpf_program__attach_xdp(obj->progs.dropping, ifindex);
+    struct bpf_link *link = bpf_program__attach_xdp(dpbpf->progs.processping, ifindex);
     if (!link) {
         fprintf(stderr, "Failed to call bpf_program__attach_xdp\n");
         return 1;
     }
 
-    struct bpf_map *ringbuf_map = bpf_object__find_map_by_name(skel->obj, "ringbuf");
+    struct bpf_map *ringbuf_map = bpf_object__find_map_by_name(dpbpf->obj, "ping_ring");
     if (!ringbuf_map)
     {
         fprintf(stderr, "Failed to get ring buffer map\n");
