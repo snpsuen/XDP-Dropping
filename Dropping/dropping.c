@@ -17,10 +17,10 @@ void handle_sigint(int sig) {
 }
 
 int handle_ping(void *ctx, void *data, size_t len)  {
-    struct pingarrive_t *msg = (struct pingarrive_t *)data;
+    struct pingmsg_t *msg = (struct pingmsg_t *)data;
     char str_s[INET_ADDRSTRLEN];
     char str_d[INET_ADDRSTRLEN];
-    printf("--- Got ping! ---\n");
+    printf("--- Received ping! ---\n");
     if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN)) {
         printf("src ip: %s\n", str_s);
     }
