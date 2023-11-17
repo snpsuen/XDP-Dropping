@@ -14,7 +14,7 @@ struct {
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
     __uint(max_entries, 256 * 1024);
-} pingarrive_ring SEC(".maps");
+} ping_ring SEC(".maps");
 
 SEC("xdp")
 int processping(struct xdp_md *ctx) {
@@ -40,7 +40,7 @@ int processping(struct xdp_md *ctx) {
         msg.saddr = ip->saddr;
         msg.daddr = ip->daddr;
 
-        bpf_ringbuf_output(&pingarrive_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
+        bpf_ringbuf_output(&ping_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
 
         if (bpf_map_lookup_elem(&dropping_hash, &ip->saddr)) {
             return XDP_DROP;
