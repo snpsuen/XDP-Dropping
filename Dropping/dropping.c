@@ -33,26 +33,53 @@ int handle_ping(void *ctx, void *data, size_t len)  {
 int main(int argc, char *argv[]) {
     int err;
     unsigned int ifindex;
-
-    if (argc != 2) {
-       printf("Provide interface name\n"); 
+    char* ifname;
+    int interval;
+    
+    switch(argc) {
+        case 1:
+            ifname = "eth0";
+            interval = 1000;
+            break;
+        case 2:
+            ifname = argv[1];
+            interval = 1000;
+            break;
+        default:
+            ifname = argv[1];
+            interval = atoi(argv[2]);
     }
-
-    /* Attach BPF to network interface */
-    ifindex = if_nametoindex(argv[1]);
 
     // Set up signal handler to exit
     signal(SIGINT, handle_sigint);
 
+    unsigned int ifindex = if_nametoindex(iface);
+    if (!ifindex) {
+        perror("failed to resolve iface to ifindex");
+        return EXIT_FAILURE;
+    }
+
+    struct rlimit rlim = {
+        .rlim_cur = RLIM_INFINITY,
+        .rlim_max = RLIM_INFINITY,
+    };
+    if (setrlimit(RLIMIT_MEMLOCK, &rlim)) {
+        perror("failed to increase RLIMIT_MEMLOCK");
+        return EXIT_FAILURE;
+    }
+
+    int err;
+    struct dropping_bpf *obj;
+    
     // Load and verify BPF application
-    struct main_bpf *skel = main_bpf__open_and_load();
-    if (!skel) {
-        fprintf(stderr, "Failed to open BPF skeleton\n");
+    struct dropping_bpf *obj = dropping_bpf__open_and_load();
+    if (!obj) {
+        fprintf(stderr, "Failed to open and open BPF object\n");
         return 1;
     }
 
-    // attach xdp program to interface
-    struct bpf_link *link = bpf_program__attach_xdp(skel->progs.detect_ping, ifindex);
+    // Attach xdp program to interface
+    struct bpf_link *link = bpf_program__attach_xdp(obj->progs.dropping, ifindex);
     if (!link) {
         fprintf(stderr, "Failed to call bpf_program__attach_xdp\n");
         return 1;
