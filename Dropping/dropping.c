@@ -70,16 +70,16 @@ int main(int argc, char *argv[]) {
     
     // Load and verify BPF application
     struct dropping_bpf *dpbpf = dropping_bpf__open_and_load();
-    if (!obj) {
+    if (!dpbpf) {
         fprintf(stderr, "Failed to open and open BPF object\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     // Attach xdp program to interface
     struct bpf_link *link = bpf_program__attach_xdp(dpbpf->progs.processping, ifindex);
     if (!link) {
         fprintf(stderr, "Failed to call bpf_program__attach_xdp\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     struct bpf_map *ringbuf_map = bpf_object__find_map_by_name(dpbpf->obj, "ping_ring");
