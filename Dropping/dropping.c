@@ -6,19 +6,18 @@
 #include <bpf/libbpf.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <linux/if_link.h>
 
 #include "dropping.h"
 #include "dropping.skel.h"
-
 
 void handle_sigint(int sig) {
     printf("Terminating\n");
     exit(0);
 }
 
-
 int handle_event(void *ctx, void *data, size_t len)  {
-    struct data_t *msg = (struct data_t *)data;
+    struct pingarrive_t *msg = (struct pingarrive_t *)data;
     char str_s[INET_ADDRSTRLEN];
     char str_d[INET_ADDRSTRLEN];
     printf("--- got ping! ---\n");
