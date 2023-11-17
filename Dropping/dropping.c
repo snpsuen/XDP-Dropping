@@ -16,7 +16,7 @@ void handle_sigint(int sig) {
     exit(0);
 }
 
-int handle_event(void *ctx, void *data, size_t len)  {
+int handle_ping(void *ctx, void *data, size_t len)  {
     struct pingarrive_t *msg = (struct pingarrive_t *)data;
     char str_s[INET_ADDRSTRLEN];
     char str_d[INET_ADDRSTRLEN];
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    struct ring_buffer *ringbuf = ring_buffer__new(bpf_map__fd(ringbuf_map), handle_event, NULL, NULL);
+    struct ring_buffer *ringbuf = ring_buffer__new(bpf_map__fd(ringbuf_map), handle_ping, NULL, NULL);
     if (!ringbuf)
     {
         fprintf(stderr, "Failed to create ring buffer\n");
