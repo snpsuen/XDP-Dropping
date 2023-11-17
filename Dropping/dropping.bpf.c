@@ -20,7 +20,7 @@ SEC("xdp")
 int processping(struct xdp_md *ctx) {
     void *data_end = (void *)(long)ctx->data_end;
     void *data = (void *)(long)ctx->data;
-    struct pingarrive_t msg = {0};
+    struct pingmsg_t msg = {0};
 
     struct ethhdr *eth = (struct ethhdr *)data;
     if ((void*)eth + sizeof(struct ethhdr) > data_end)
