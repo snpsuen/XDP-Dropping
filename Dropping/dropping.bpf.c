@@ -35,7 +35,7 @@ int processping(struct xdp_md *ctx) {
     if (iph->protocol != IPPROTO_ICMP)
         return XDP_PASS;
     
-    if (ip->protocol == IPPROTO_ICMP) {
+    if (iph->protocol == IPPROTO_ICMP) {
         msg.proto = IPPROTO_ICMP;
         msg.saddr = ip->saddr;
         msg.daddr = ip->daddr;
