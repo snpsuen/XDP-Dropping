@@ -20,7 +20,7 @@ int handle_ping(void *ctx, void *data, size_t len)  {
     struct pingarrive_t *msg = (struct pingarrive_t *)data;
     char str_s[INET_ADDRSTRLEN];
     char str_d[INET_ADDRSTRLEN];
-    printf("--- got ping! ---\n");
+    printf("--- Got ping! ---\n");
     if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN)) {
         printf("src ip: %s\n", str_s);
     }
