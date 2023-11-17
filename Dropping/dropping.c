@@ -7,8 +7,8 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 
-#include "main.h"
-#include "main.skel.h"
+#include "dropping.h"
+#include "dropping.skel.h"
 
 
 void handle_sigint(int sig) {
