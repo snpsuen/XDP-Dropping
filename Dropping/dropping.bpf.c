@@ -37,8 +37,8 @@ int processping(struct xdp_md *ctx) {
     
     if (iph->protocol == IPPROTO_ICMP) {
         msg.proto = IPPROTO_ICMP;
-        msg.saddr = ip->saddr;
-        msg.daddr = ip->daddr;
+        msg.saddr = iph->saddr;
+        msg.daddr = iph->daddr;
 
         bpf_ringbuf_output(&ping_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
 
