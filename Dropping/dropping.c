@@ -15,21 +15,26 @@
 #include "dropping.skel.h"
 
 void handle_sigint(int sig) {
-    printf("Terminating\n");
-    exit(0);
+    if (sig == SIGINT) {
+        printf("Program terminates\n");
+        exit(0);
+    }
 }
 
 int handle_ping(void *ctx, void *data, size_t len)  {
-    struct pingmsg_t *msg = (struct pingmsg_t *)data;
+    struct pingmsg_t* msg = (struct pingmsg_t *)data;
+    void* ptr = ctx;
+    size_t size = len;
+
     char str_s[INET_ADDRSTRLEN];
     char str_d[INET_ADDRSTRLEN];
     printf("--- Received ping! ---\n");
-    if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN)) {
+    printf("ctx = %x, len = %d\n", ptr, size);
+    
+    if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN))
         printf("src ip: %s\n", str_s);
-    }
-    if (inet_ntop(AF_INET, &(msg->daddr), str_d, INET_ADDRSTRLEN)) {
+    if (inet_ntop(AF_INET, &(msg->daddr), str_d, INET_ADDRSTRLEN))
         printf("dst ip: %s\n", str_d);
-    }
     return 0;
 }
 
@@ -56,7 +61,7 @@ int main(int argc, char *argv[]) {
     // Set up signal handler to exit
     signal(SIGINT, handle_sigint);
 
-    unsigned int ifindex = if_nametoindex(iface);
+    ifindex = if_nametoindex(ifname);
     if (!ifindex) {
         perror("failed to resolve iface to ifindex");
         return EXIT_FAILURE;
@@ -85,7 +90,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    int map_fd = bpf_object__find_map_id_by_name(dpbpf->obj, "ping_ring");
+    int map_fd = bpf_object__find_map_fd_by_name(dpbpf->obj, "ping_ring");
     if (map_fd < 0)
     {
         fprintf(stderr, "Failed to find the fd for the ring buffer map\n");
