@@ -29,7 +29,7 @@ int handle_ping(void *ctx, void *data, size_t len)  {
     char str_s[INET_ADDRSTRLEN];
     char str_d[INET_ADDRSTRLEN];
     printf("--- Received ping! ---\n");
-    printf("ctx = %x, len = %d\n", ptr, size);
+    printf("ctx = %x, len = %d\n", (long)ptr, (int)size);
     
     if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN))
         printf("src ip: %s\n", str_s);
@@ -39,7 +39,6 @@ int handle_ping(void *ctx, void *data, size_t len)  {
 }
 
 int main(int argc, char *argv[]) {
-    int err;
     unsigned int ifindex;
     char* ifname;
     int interval;
