@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -89,21 +90,13 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    int map_fd = bpf_object__find_map_fd_by_name(dpbpf->obj, "ping_ring");
-    if (map_fd < 0)
-    {
-        fprintf(stderr, "Failed to find the fd for the ring buffer map\n");
+    struct bpf_map *ptmap = bpf_object__find_map_by_name(dpbpf->obj, "pingtraffic_array");
+    if (!ptmap) {
+        fprintf(stderr, "Failed to find the fd for the ping traffic array map\n");
         return EXIT_FAILURE;
     }
 
-    struct ring_buffer *ringbuf = ring_buffer__new(map_fd, handle_ping, NULL, NULL);
-    if (!ringbuf)
-    {
-        fprintf(stderr, "Failed to create ring buffer\n");
-        return EXIT_FAILURE;
-    }
 
-    printf("Successfully started! Please Ctrl+C to stop.\n");
 
     struct bpf_map *phmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
     if (!phmap) {
@@ -111,7 +104,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-
+    printf("Successfully started! Please Ctrl+C to stop.\n");
+    
     const char* sourceip = "192.168.1.1";
     uint32_t key;
     inet_pton(AF_INET, sourceip, &key);
