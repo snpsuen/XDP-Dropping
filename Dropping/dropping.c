@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
     printf("Successfully started! Please Ctrl+C to stop.\n");
 
-    struct bpf_map *phmap = bpf_object__find_map_by_name(dpbpf->obj, "ping_hash");
+    struct bpf_map *phmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
     if (!phmap) {
         fprintf(stderr, "Failed to find the ping hash map\n");
         return EXIT_FAILURE;
@@ -113,9 +113,9 @@ int main(int argc, char *argv[]) {
     inet_pton(AF_INET, sourceip, &key);
     uint8_t value = 1;
 
-    int ret = bpf_map__update_elem(map_hash, &key, sizeof(uint32_t), &value, sizeof(uint8_t), BPF_ANY);
+    int ret = bpf_map__update_elem(phmap, &key, sizeof(uint32_t), &value, sizeof(uint8_t), BPF_ANY);
     if (ret < 0) {
-        fprintf(stderr, "failed to update element in ping_hash\n");
+        fprintf(stderr, "failed to update element in dropping_hash\n");
         return EXIT_FAILURE;
     }
 
