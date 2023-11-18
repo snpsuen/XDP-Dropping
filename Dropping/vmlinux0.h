@@ -1,3 +1,5 @@
+#include "vmlinux.h"
+
 #ifndef BPF_MAP_TYPE_RINGBUF
 #define BPF_MAP_TYPE_RINGBUF 27
 #endif
