@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (LGPL-2.1-or-later OR BSD-2-Clause)
 
-#include "vmlinux.h"
+#include "vmlinux0.h"
 #include <bpf/bpf_helpers.h>
 #include "dropping.h"
 
