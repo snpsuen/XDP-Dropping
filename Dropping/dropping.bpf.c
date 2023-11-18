@@ -2,6 +2,7 @@
 
 #include "vmlinux0.h"
 #include <bpf/bpf_helpers.h>
+#include <bpf/bpf_endian.h>
 #include "dropping.h"
 
 struct {
@@ -25,7 +26,7 @@ int processping(struct xdp_md *ctx) {
     struct ethhdr *eth = (struct ethhdr *)data;
     if ((void*)eth + sizeof(struct ethhdr) > data_end)
         return XDP_ABORTED;
-    if (ntohs(eth->h_proto) != ETH_P_IP)
+    if (bpf_ntohs(eth->h_proto) != ETH_P_IP)
         return XDP_PASS;
 
     struct iphdr* iph = (void*)eth + sizeof(struct ethhdr);
