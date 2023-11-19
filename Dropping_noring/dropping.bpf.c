@@ -40,7 +40,7 @@ int processping(struct xdp_md *ctx) {
     return XDP_PASS;
     
   if (iph->protocol == IPPROTO_ICMP) {
-    msg.timestamp = ktime_get_real();
+    msg.timestamp = bpf_ktime_get_ns();
     msg.saddr = iph->saddr;
     msg.daddr = iph->daddr;
 
