@@ -25,7 +25,7 @@ void handle_sigint(int sig) {
 int main(int argc, char *argv[]) {
     unsigned int ifindex;
     char* ifname;
-    int interval;
+    int interval, ret;
     
     switch(argc) {
         case 1:
@@ -73,13 +73,13 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    struct bpf_map *ptmap = bpf_object__find_map_by_name(dpbpf->obj, "pingtraffic_array");
+    struct bpf_map* ptmap = bpf_object__find_map_by_name(dpbpf->obj, "pingtraffic_array");
     if (!ptmap) {
         fprintf(stderr, "Failed to find the fd for the ping traffic array map\n");
         return EXIT_FAILURE;
     }
 
-    struct bpf_map *dpmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
+    struct bpf_map* dpmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
     if (!dpmap) {
         fprintf(stderr, "Failed to find the ping hash map\n");
         return EXIT_FAILURE;
@@ -92,26 +92,21 @@ int main(int argc, char *argv[]) {
         printf("Enter blocked ping source IP or Q/q to quit: ");
         if (fgets(blocked, sizeof(blocked), stdin) == NULL) { 
             printf("Fail to read the input stream"); 
-            break;
+            continue;
         }
         blocked[strlen(blocked)] = 0;
-        if (strcmp(blocked, "Q") || 
-        
-    } 
-    
+        if (strcmp(blocked, "Q") || strcmp(blocked, "q"))
+            break;
 
-    
-    const char* sourceip = "192.168.1.1";
-    uint32_t key;
-    inet_pton(AF_INET, sourceip, &key);
-    uint8_t value = 1;
+        uint32_t addrkey;
+        inet_pton(AF_INET, blocked, &key);
+        uint8_t confirmed = 1;
+        ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(uint32_t), &confirmed, sizeof(uint8_t), BPF_ANY);
+        if (ret < 0)
+            fprintf(stderr, "failed to update element in dropping_hash\n");
 
-    int ret = bpf_map__update_elem(dpmap, &key, sizeof(uint32_t), &value, sizeof(uint8_t), BPF_ANY);
-    if (ret < 0) {
-        fprintf(stderr, "failed to update element in dropping_hash\n");
-        return EXIT_FAILURE;
     }
-
+    
     // Poll the ping traffic array
     int key = 0;
     struct pingmsg_t msg;
