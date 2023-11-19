@@ -98,17 +98,17 @@ int main(int argc, char *argv[]) {
         if (strcmp(blocked, "Q") || strcmp(blocked, "q"))
             break;
 
-        uint32_t addrkey;
+        unsigned int addrkey;
         inet_pton(AF_INET, blocked, &key);
-        uint8_t confirmed = 1;
-        ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(uint32_t), &confirmed, sizeof(uint8_t), BPF_ANY);
+        unsigned char confirmed = 1;
+        ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
         if (ret < 0)
             fprintf(stderr, "failed to update element in dropping_hash\n");
 
     }
     
     // Poll the ping traffic array
-    int key = 0;
+    unsigned short key = 0;
     struct pingmsg_t msg;
     while (1) {
         ret = bpf_map__lookup_elem(ptmap, &key, sizeof(uint32_t), &msg, sizeof(uint8_t), BPF_ANY);
