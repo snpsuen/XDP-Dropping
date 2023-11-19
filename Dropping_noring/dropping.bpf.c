@@ -14,7 +14,7 @@ struct {
 
 struct {
   __uint(type, BPF_MAP_TYPE_ARRAY);
-	__type(key, uint32_t);
+	__type(key, uint16_t);
 	__type(value, struct pingmsg_t);
 	__uint(max_entries, 1024);
 } pingtraffic_array SEC(".maps");
