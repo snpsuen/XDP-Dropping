@@ -96,10 +96,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-
-
-    struct bpf_map *phmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
-    if (!phmap) {
+    struct bpf_map *dpmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
+    if (!dpmap) {
         fprintf(stderr, "Failed to find the ping hash map\n");
         return EXIT_FAILURE;
     }
@@ -111,15 +109,19 @@ int main(int argc, char *argv[]) {
     inet_pton(AF_INET, sourceip, &key);
     uint8_t value = 1;
 
-    int ret = bpf_map__update_elem(phmap, &key, sizeof(uint32_t), &value, sizeof(uint8_t), BPF_ANY);
+    int ret = bpf_map__update_elem(dpmap, &key, sizeof(uint32_t), &value, sizeof(uint8_t), BPF_ANY);
     if (ret < 0) {
         fprintf(stderr, "failed to update element in dropping_hash\n");
         return EXIT_FAILURE;
     }
 
-    // Poll the ring buffer
+    // Poll the ping traffic array
+    int key = 0;
+    key = key % 1024
+    struct pingmsg_t* msg;
     while (1) {
-        if (ring_buffer__poll(ringbuf, interval /* timeout, ms */) < 0) {
+        ret = bpf_map__lookup_elem(ptmap, &key, sizeof(uint32_t), &msg, sizeof(uint8_t), BPF_ANY);
+        if ((ringbuf, interval /* timeout, ms */) < 0) {
             fprintf(stderr, "Error polling ring buffer\n");
             break;
         }
