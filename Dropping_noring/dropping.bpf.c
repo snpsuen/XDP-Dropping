@@ -24,7 +24,7 @@ int processping(struct xdp_md *ctx) {
   void *data_end = (void *)(long)ctx->data_end;
   void *data = (void *)(long)ctx->data;
   struct pingmsg_t msg = {0};
-  static uint32_t skey = 0;
+  static uint16_t skey = 0;
   
   struct ethhdr *eth = (struct ethhdr *)data;
   if ((void*)eth + sizeof(struct ethhdr) > data_end)
@@ -44,7 +44,7 @@ int processping(struct xdp_md *ctx) {
     msg.saddr = iph->saddr;
     msg.daddr = iph->daddr;
 
-    int key = skey % 1024
+    uint16_t key = skey % 1024
     int ret = bpf_map_update_elem(pingtraffic_array, &key, sizeof(uint32_t), &msg, sizeof(struct pingmesg_t), BPF_ANY);
     if (ret) {
       fprintf(stderr, "failed to update element in pingtraffic_array\n");
