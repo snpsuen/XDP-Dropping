@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
             break;
 
         unsigned int addrkey;
-        inet_pton(AF_INET, blocked, &key);
+        inet_pton(AF_INET, blocked, &addrkey);
         unsigned char confirmed = 1;
         ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
         if (ret < 0)
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
             if (inet_ntop(AF_INET, &(msg.daddr), str_d, INET_ADDRSTRLEN))
                 printf("dst ip: %s\n", str_d);
 
-            key = (key + 1)%1024
+            key = (key + 1)%1024;
         }
         sleep(interval);
     }
