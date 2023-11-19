@@ -120,22 +120,20 @@ int main(int argc, char *argv[]) {
     struct pingmsg_t msg;
     while (1) {
         ret = bpf_map__lookup_elem(ptmap, &key, sizeof(uint32_t), &msg, sizeof(uint8_t), BPF_ANY);
-        if (ret < 0)
-            break;
+        if (ret == 0 {
+            char str_s[INET_ADDRSTRLEN];
+            char str_d[INET_ADDRSTRLEN];
+            printf("--- Received ping! ---\n");
+            printf("timestamp: %lld\n", msg->timestamp);
+            if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN))
+                printf("src ip: %s\n", str_s);
+            if (inet_ntop(AF_INET, &(msg->daddr), str_d, INET_ADDRSTRLEN))
+                printf("dst ip: %s\n", str_d);
 
-        /* print msg */
-         char str_s[INET_ADDRSTRLEN];
-        char str_d[INET_ADDRSTRLEN];
-    printf("--- Received ping! ---\n");
-    printf("ctx = %x, len = %d\n", (long)ptr, (int)size);
-    
-    if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN))
-        printf("src ip: %s\n", str_s);
-    if (inet_ntop(AF_INET, &(msg->daddr), str_d, INET_ADDRSTRLEN))
-        printf("dst ip: %s\n", str_d);
-        
-        
+            key = (key + 1)%1024
+        }
+        sleep(interval);
     }
-
+    
     return 0;
 }
