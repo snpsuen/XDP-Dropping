@@ -38,11 +38,11 @@ int processping(struct xdp_md *ctx) {
 		return XDP_PASS;
 	
 	if (iph->protocol == IPPROTO_ICMP) {
-		struct pingmg_t msg;
+		struct pingmsg_t msg;
 		msg.timestamp = bpf_ktime_get_ns();
 		msg.saddr = iph->saddr;
 		msg.daddr = iph->daddr;
-		uint16_t key = skey % 1024
+		uint16_t key = skey % 1024;
 		int ret = bpf_map_update_elem(pingtraffic_array, &key, sizeof(uint16_t), &msg, sizeof(struct pingmsg_t), BPF_ANY);
 		if (ret) {
 			fprintf(stderr, "failed to update element in pingtraffic_array\n");
