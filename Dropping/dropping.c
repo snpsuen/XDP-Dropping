@@ -116,8 +116,8 @@ int main(int argc, char *argv[]) {
             printf("Fail to read the input stream"); 
             continue;
         }
-        blocked[strlen(blocked)] = 0;
-        if (strcmp(blocked, "Q") || strcmp(blocked, "q"))
+        blocked[strlen(blocked)-1] = 0;
+        if ((strcmp(blocked, "Q") == 0) || (strcmp(blocked, "q") == 0))
             break;
 
         unsigned int addrkey;
