@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
         unsigned int addrkey;
         inet_pton(AF_INET, blocked, &addrkey);
         unsigned char confirmed = 1;
-        ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
+        int ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
         if (ret < 0)
             fprintf(stderr, "failed to update element in dropping_hash\n");
 
