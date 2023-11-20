@@ -1,5 +1,5 @@
 struct pingmsg_t {
-   int proto;
+   long long timestamp;
    int saddr;
    int daddr;
 };
