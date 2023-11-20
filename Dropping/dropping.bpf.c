@@ -19,10 +19,10 @@ struct {
 
 SEC("xdp")
 int processping(struct xdp_md *ctx) {
-    void *data_end = (void *)(long)ctx->data_end;
-    void *data = (void *)(long)ctx->data;
-
-    struct ethhdr *eth = (struct ethhdr *)data;
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	
+	struct ethhdr *eth = (struct ethhdr *)data;
 	if ((void*)eth + sizeof(struct ethhdr) > data_end)
 		return XDP_ABORTED;
 	if (bpf_ntohs(eth->h_proto) != ETH_P_IP)
@@ -33,20 +33,20 @@ int processping(struct xdp_md *ctx) {
 		return XDP_ABORTED;
 	if (iph->protocol != IPPROTO_ICMP)
 		return XDP_PASS;
-    
-    if (iph->protocol == IPPROTO_ICMP) {
-        struct pingmsg_t msg;
+	
+	if (iph->protocol == IPPROTO_ICMP) {
+		struct pingmsg_t msg;
 		msg.timestamp = bpf_ktime_get_ns();
 		msg.saddr = iph->saddr;
 		msg.daddr = iph->daddr;
-        bpf_ringbuf_output(&ping_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
-
-        if (bpf_map_lookup_elem(&dropping_hash, &iph->saddr)) {
-            return XDP_DROP;
-        } 
-    }
+		bpf_ringbuf_output(&ping_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
+		
+		if (bpf_map_lookup_elem(&dropping_hash, &iph->saddr)) {
+			return XDP_DROP;
+		} 
+	}
     
-    return XDP_PASS;
+	return XDP_PASS;
 }
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
