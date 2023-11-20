@@ -21,20 +21,18 @@ void handle_sigint(int sig) {
     }
 }
 
-int handle_ping(void *ctx, void *data, size_t len)  {
+int handle_ping(void*, void *data, size_t)  {
     struct pingmsg_t* msg = (struct pingmsg_t *)data;
-    void* ptr = ctx;
-    size_t size = len;
-
     char str_s[INET_ADDRSTRLEN];
     char str_d[INET_ADDRSTRLEN];
-    printf("--- Received ping! ---\n");
-    printf("ctx = %x, len = %d\n", (long)ptr, (int)size);
     
+    printf("--- Received ping! ---\n");
+    printf("timestamp: %lld\n", msg->timestamp);
     if (inet_ntop(AF_INET, &(msg->saddr), str_s, INET_ADDRSTRLEN))
         printf("src ip: %s\n", str_s);
     if (inet_ntop(AF_INET, &(msg->daddr), str_d, INET_ADDRSTRLEN))
         printf("dst ip: %s\n", str_d);
+    
     return 0;
 }
 
@@ -76,19 +74,25 @@ int main(int argc, char *argv[]) {
     }
     
     // Load and verify BPF application
-    struct dropping_bpf *dpbpf = dropping_bpf__open_and_load();
+    struct dropping_bpf* dpbpf = dropping_bpf__open_and_load();
     if (!dpbpf) {
         fprintf(stderr, "Failed to open and open BPF object\n");
         return EXIT_FAILURE;
     }
 
     // Attach xdp program to interface
-    struct bpf_link *link = bpf_program__attach_xdp(dpbpf->progs.processping, ifindex);
-    if (!link) {
+    struct bpf_link* bpflink = bpf_program__attach_xdp(dpbpf->progs.processping, ifindex);
+    if (!bpflink) {
         fprintf(stderr, "Failed to call bpf_program__attach_xdp\n");
         return EXIT_FAILURE;
     }
 
+    struct bpf_map* dpmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
+    if (!dpmap) {
+        fprintf(stderr, "Failed to find the ping hash map\n");
+        return EXIT_FAILURE;
+    }
+    
     int map_fd = bpf_object__find_map_fd_by_name(dpbpf->obj, "ping_ring");
     if (map_fd < 0)
     {
@@ -104,26 +108,29 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Successfully started! Please Ctrl+C to stop.\n");
+    while (1) {
+        char blocked[INET_ADDRSTRLEN];
+        memset(blocked, 0, sizeof(blocked));   
+        printf("Enter blocked ping source IP or Q/q to quit: ");
+        if (fgets(blocked, sizeof(blocked), stdin) == NULL) { 
+            printf("Fail to read the input stream"); 
+            continue;
+        }
+        blocked[strlen(blocked)] = 0;
+        if (strcmp(blocked, "Q") || strcmp(blocked, "q"))
+            break;
 
-    struct bpf_map *phmap = bpf_object__find_map_by_name(dpbpf->obj, "dropping_hash");
-    if (!phmap) {
-        fprintf(stderr, "Failed to find the ping hash map\n");
-        return EXIT_FAILURE;
-    }
+        unsigned int addrkey;
+        inet_pton(AF_INET, blocked, &addrkey);
+        unsigned char confirmed = 1;
+        ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
+        if (ret < 0)
+            fprintf(stderr, "failed to update element in dropping_hash\n");
 
-
-    const char* sourceip = "192.168.1.1";
-    uint32_t key;
-    inet_pton(AF_INET, sourceip, &key);
-    uint8_t value = 1;
-
-    int ret = bpf_map__update_elem(phmap, &key, sizeof(uint32_t), &value, sizeof(uint8_t), BPF_ANY);
-    if (ret < 0) {
-        fprintf(stderr, "failed to update element in dropping_hash\n");
-        return EXIT_FAILURE;
     }
 
     // Poll the ring buffer
+    printf("Polling the ring buffer ...\n");
     while (1) {
         if (ring_buffer__poll(ringbuf, interval /* timeout, ms */) < 0) {
             fprintf(stderr, "Error polling ring buffer\n");
