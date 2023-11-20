@@ -12,6 +12,7 @@
 #define ETH_P_IP 0x0800
 #endif
 
+/* 
 struct xdp_md {
   __u32 data;
   __u32 data_end;
@@ -20,3 +21,4 @@ struct xdp_md {
   __u32 rx_queue_index;
   __u32 egress_ifindex;
 };
+*/
