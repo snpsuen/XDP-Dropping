@@ -14,7 +14,7 @@ struct {
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
-    __uint(max_entries, 64 * 4096);
+    __uint(max_entries, 256 * 4096);
 } ping_ring SEC(".maps");
 
 SEC("xdp")
