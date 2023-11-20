@@ -21,26 +21,24 @@ SEC("xdp")
 int processping(struct xdp_md *ctx) {
     void *data_end = (void *)(long)ctx->data_end;
     void *data = (void *)(long)ctx->data;
-    struct pingmsg_t msg = {0};
 
     struct ethhdr *eth = (struct ethhdr *)data;
-    if ((void*)eth + sizeof(struct ethhdr) > data_end)
-        return XDP_ABORTED;
-    if (bpf_ntohs(eth->h_proto) != ETH_P_IP)
-        return XDP_PASS;
-
-    struct iphdr* iph = (void*)eth + sizeof(struct ethhdr);
-    if ((void*)iph + sizeof(struct iphdr) > data_end)
-        return XDP_ABORTED;
-
-    if (iph->protocol != IPPROTO_ICMP)
-        return XDP_PASS;
+	if ((void*)eth + sizeof(struct ethhdr) > data_end)
+		return XDP_ABORTED;
+	if (bpf_ntohs(eth->h_proto) != ETH_P_IP)
+		return XDP_PASS;
+	
+	struct iphdr* iph = (void*)eth + sizeof(struct ethhdr);
+	if ((void*)iph + sizeof(struct iphdr) > data_end)
+		return XDP_ABORTED;
+	if (iph->protocol != IPPROTO_ICMP)
+		return XDP_PASS;
     
     if (iph->protocol == IPPROTO_ICMP) {
-        msg.proto = IPPROTO_ICMP;
-        msg.saddr = iph->saddr;
-        msg.daddr = iph->daddr;
-
+        struct pingmsg_t msg;
+		msg.timestamp = bpf_ktime_get_ns();
+		msg.saddr = iph->saddr;
+		msg.daddr = iph->daddr;
         bpf_ringbuf_output(&ping_ring, &msg, sizeof(msg), BPF_RB_FORCE_WAKEUP);
 
         if (bpf_map_lookup_elem(&dropping_hash, &iph->saddr)) {
