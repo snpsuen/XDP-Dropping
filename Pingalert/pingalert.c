@@ -63,7 +63,6 @@ union bpf_attr attr = {
         .key_size = sizeof(__u32);       /* mandatory */
         .value_size = sizeof(__u8);     /* mandatory */
         .max_entries = 1024;              /* mandatory */
-        .map_flags = !BPF_F_NO_COMMON_LRU;
         .map_name = "pingalert_map";
 };
 
