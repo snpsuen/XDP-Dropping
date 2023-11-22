@@ -67,13 +67,6 @@ union bpf_attr attr = {
         .map_name = "pingalert_map";
 };
 
-struct {
-    __uint(type, BPF_MAP_TYPE_HASH);
-    __uint(max_entries, 1024);
-    __type(key, uint32_t);
-    __type(value, uint8_t);
-} drop
-
 int map_fd = bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
 
     ifindex = if_nametoindex(ifname);
