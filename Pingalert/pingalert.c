@@ -110,20 +110,6 @@ int map_fd = bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
         fprintf(stderr, "Failed to find the ping hash map\n");
         return EXIT_FAILURE;
     }
-    
-    int map_fd = bpf_object__find_map_fd_by_name(dpbpf->obj, "ping_ring");
-    if (map_fd < 0)
-    {
-        fprintf(stderr, "Failed to find the fd for the ring buffer map\n");
-        return EXIT_FAILURE;
-    }
-
-    struct ring_buffer *ringbuf = ring_buffer__new(map_fd, handle_ping, NULL, NULL);
-    if (!ringbuf)
-    {
-        fprintf(stderr, "Failed to create ring buffer\n");
-        return EXIT_FAILURE;
-    }
 
     printf("Successfully started! Please Ctrl+C to stop.\n");
     while (1) {
