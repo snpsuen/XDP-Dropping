@@ -61,11 +61,18 @@ int main(int argc, char *argv[]) {
 union bpf_attr attr = {
         .map_type = BPF_MAP_TYPE_ARRAY;  /* mandatory */
         .key_size = sizeof(__u32);       /* mandatory */
-        .value_size = sizeof(__u32);     /* mandatory */
-        .max_entries = 256;              /* mandatory */
-        .map_flags = BPF_F_MMAPABLE;
-        .map_name = "example_array";
+        .value_size = sizeof(__u8);     /* mandatory */
+        .max_entries = 1024;              /* mandatory */
+        .map_flags = !BPF_F_NO_COMMON_LRU;
+        .map_name = "pingalert_map";
 };
+
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(max_entries, 1024);
+    __type(key, uint32_t);
+    __type(value, uint8_t);
+} drop
 
 int map_fd = bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
 
