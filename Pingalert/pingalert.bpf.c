@@ -9,7 +9,7 @@ struct {
     __uint(max_entries, 1024);
     __type(key, uint32_t);
     __type(value, uint8_t);
-} pingalert_map SEC(".maps");
+} pingalert_map;
 
 SEC("xdp")
 int processping(struct xdp_md *ctx) {
