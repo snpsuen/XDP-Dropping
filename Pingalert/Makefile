@@ -1,7 +1,7 @@
 CLANG = clang
 CFLAGS = -g -O2 -Wall -Wextra
 
-PROGS = dropping
+PROGS = pingalert
 
 all: $(PROGS)
 
