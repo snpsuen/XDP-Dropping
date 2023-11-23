@@ -4,49 +4,44 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
-#include <linux/bpf.h>
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
+#include <linux/bpf.h>
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <linux/if_link.h>
 #include "pingalert.skel.h"
-
+#include "pingalert.h"
 
 int main(int argc, char *argv[]) {
     unsigned int ifindex;
     char* ifname;
-    int interval;
-    
+
     switch(argc) {
         case 1:
             ifname = "eth0";
-            interval = 1000;
-            break;
-        case 2:
-            ifname = argv[1];
-            interval = 1000;
             break;
         default:
             ifname = argv[1];
-            interval = atoi(argv[2]);
     }
 
-  
-	union bpf_attr attr = {
-        .map_type = BPF_MAP_TYPE_HASH;  /* mandatory */
-        .key_size = sizeof(__u32);       /* mandatory */
-        .value_size = sizeof(__u8);     /* mandatory */
-        .max_entries = 1024;              /* mandatory */
-        .map_name = "pingalert_map";
-	};
+    /*
+        union bpf_attr attr = {
+          .map_type = BPF_MAP_TYPE_HASH,  // mandatory
+          .key_size = sizeof(__u32),      // mandatory
+          .value_size = sizeof(__u8),     // mandatory
+          .max_entries = 1024,            // mandatory
+          .map_name = "pingalert_map",
+        };
 
-	int map_fd = bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
-	if (fd < 0) {
-		perror("failed to create ping alert map");
-		return EXIT_FAILURE;
-	}
-		
+        int fd = bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
+        if (fd < 0) {
+                perror("failed to create ping alert map");
+                return EXIT_FAILURE;
+        }
+
+*/
+
     ifindex = if_nametoindex(ifname);
     if (!ifindex) {
         perror("failed to resolve iface to ifindex");
@@ -61,11 +56,11 @@ int main(int argc, char *argv[]) {
         perror("failed to increase RLIMIT_MEMLOCK");
         return EXIT_FAILURE;
     }
-    
+
     // Load and verify BPF application
     struct pingalert_bpf* pabpf = pingalert_bpf__open_and_load();
-    if (!dpbpf) {
-        fprintf(stderr, "Failed to open and open BPF object\n");
+    if (!pabpf) {
+        fprintf(stderr, "Failed to open and load BPF object\n");
         return EXIT_FAILURE;
     }
 
@@ -76,12 +71,20 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+
+    int map_fd = bpf_object__find_map_fd_by_name(pabpf->obj, "pingalert_map");
+    if (map_fd < 0)
+    {
+        fprintf(stderr, "Failed to find the fd for the ping alert map\n");
+        return EXIT_FAILURE;
+    }
+
     while (1) {
         char blocked[INET_ADDRSTRLEN];
-        memset(blocked, 0, sizeof(blocked));   
+        memset(blocked, 0, sizeof(blocked));
         printf("Enter blocked ping source IP or Q/q to quit: ");
-        if (fgets(blocked, sizeof(blocked), stdin) == NULL) { 
-            printf("Fail to read the input stream"); 
+        if (fgets(blocked, sizeof(blocked), stdin) == NULL) {
+            printf("Fail to read the input stream");
             continue;
         }
         blocked[strlen(blocked)-1] = 0;
@@ -91,7 +94,7 @@ int main(int argc, char *argv[]) {
         unsigned int addrkey;
         inet_pton(AF_INET, blocked, &addrkey);
         unsigned char confirmed = 1;
-        int ret = bpf_map_update_elem(map_fd, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
+        int ret = bpf_map_update_elem(map_fd, &addrkey, &confirmed, BPF_ANY);
         if (ret < 0)
             fprintf(stderr, "failed to update element in pingalert_map\n");
 
