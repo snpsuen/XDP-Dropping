@@ -42,7 +42,11 @@ int main(int argc, char *argv[]) {
 	};
 
 	int map_fd = bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
-
+	if (fd < 0) {
+		perror("failed to create ping alert map");
+		return EXIT_FAILURE;
+	}
+		
     ifindex = if_nametoindex(ifname);
     if (!ifindex) {
         perror("failed to resolve iface to ifindex");
@@ -89,7 +93,7 @@ int main(int argc, char *argv[]) {
         unsigned char confirmed = 1;
         int ret = bpf_map_update_elem(map_fd, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
         if (ret < 0)
-            fprintf(stderr, "failed to update element in pingalert_hash\n");
+            fprintf(stderr, "failed to update element in pingalert_map\n");
 
     }
 
