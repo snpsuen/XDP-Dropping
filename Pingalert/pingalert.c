@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
   
 	union bpf_attr attr = {
-        .map_type = BPF_MAP_TYPE_ARRAY;  /* mandatory */
+        .map_type = BPF_MAP_TYPE_HASH;  /* mandatory */
         .key_size = sizeof(__u32);       /* mandatory */
         .value_size = sizeof(__u8);     /* mandatory */
         .max_entries = 1024;              /* mandatory */
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
         unsigned int addrkey;
         inet_pton(AF_INET, blocked, &addrkey);
         unsigned char confirmed = 1;
-        int ret = bpf_map__update_elem(dpmap, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
+        int ret = bpf_map_update_elem(map_fd, &addrkey, sizeof(unsigned int), &confirmed, sizeof(unsigned char), BPF_ANY);
         if (ret < 0)
             fprintf(stderr, "failed to update element in pingalert_hash\n");
 
