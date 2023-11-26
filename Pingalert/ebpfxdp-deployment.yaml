@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ebpfxdp-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ebpfxdp
+  template:
+    metadata:
+      labels:
+        app: ebpfxdp
+    spec:
+      containers:
+      - image: snpsuen/ebpf-xdp:v02
+        name: ebpfxdp02
+        ports:
+        - containerPort: 80
