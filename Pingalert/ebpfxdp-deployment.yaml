@@ -17,3 +17,6 @@ spec:
         name: ebpfxdp02
         ports:
         - containerPort: 80
+        command:
+        - sleep
+        - infinity
