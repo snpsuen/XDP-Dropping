@@ -20,3 +20,5 @@ spec:
         command:
         - sleep
         - infinity
+        securityContext:
+          privileged: true
